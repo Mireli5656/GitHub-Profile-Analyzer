@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Profile Analyzer</title>
+</head>
+<body>
+
+    <header>
+        <h1>GitHub Profile Analyzer</h1>
+        <p>Analyze any GitHub profile in seconds.</p>
+    </header>
+
+    <main>
+        <section class="search-box">
+            <input
+                type="text"
+                id="username"
+                placeholder="Enter GitHub username"
+                autocomplete="off"
+            >
+            <button id="searchBtn">Analyze</button>
+        </section>
+
+        <section id="profile" hidden>
+
+            <div class="profile-header">
+                <img id="avatar" src="" alt="GitHub avatar">
+
+                <div>
+                    <h2 id="name"></h2>
+                    <p id="login"></p>
+                    <p id="bio"></p>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div>
+                    <strong id="repos">0</strong>
+                    <span>Repositories</span>
+                </div>
+
+                <div>
+                    <strong id="followers">0</strong>
+                    <span>Followers</span>
+                </div>
+
+                <div>
+                    <strong id="following">0</strong>
+                    <span>Following</span>
+                </div>
+
+                <div>
+                    <strong id="stars">0</strong>
+                    <span>Total Stars</span>
+                </div>
+            </div>
+
+            <div class="languages">
+                <h3>Programming Languages</h3>
+                <div id="languageList"></div>
+            </div>
+
+            <div class="repositories">
+                <h3>Top Repositories</h3>
+                <div id="repoList"></div>
+            </div>
+
+            <a id="githubLink" href="#" target="_blank">
+                View GitHub Profile
+            </a>
+
+        </section>
+
+        <p id="error" hidden></p>
+    </main>
+
+    <footer>
+        <p>GitHub Profile Analyzer</p>
+    </footer>
+
+    <script src="script.js"></script>
+
+</body>
+  </html>
