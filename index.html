@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>GitHub Profile Analyzer</title>
+
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <header>
@@ -13,6 +17,7 @@
     </header>
 
     <main>
+
         <section class="search-box">
             <input
                 type="text"
@@ -20,22 +25,34 @@
                 placeholder="Enter GitHub username"
                 autocomplete="off"
             >
-            <button id="searchBtn">Analyze</button>
+
+            <button id="searchBtn">
+                Analyze
+            </button>
         </section>
+
+        <p id="error" hidden></p>
 
         <section id="profile" hidden>
 
             <div class="profile-header">
-                <img id="avatar" src="" alt="GitHub avatar">
+
+                <img
+                    id="avatar"
+                    src=""
+                    alt="GitHub profile avatar"
+                >
 
                 <div>
                     <h2 id="name"></h2>
                     <p id="login"></p>
                     <p id="bio"></p>
                 </div>
+
             </div>
 
             <div class="stats">
+
                 <div>
                     <strong id="repos">0</strong>
                     <span>Repositories</span>
@@ -55,25 +72,36 @@
                     <strong id="stars">0</strong>
                     <span>Total Stars</span>
                 </div>
+
             </div>
 
             <div class="languages">
+
                 <h3>Programming Languages</h3>
+
                 <div id="languageList"></div>
+
             </div>
 
             <div class="repositories">
+
                 <h3>Top Repositories</h3>
+
                 <div id="repoList"></div>
+
             </div>
 
-            <a id="githubLink" href="#" target="_blank">
+            <a
+                id="githubLink"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
                 View GitHub Profile
             </a>
 
         </section>
 
-        <p id="error" hidden></p>
     </main>
 
     <footer>
@@ -83,4 +111,4 @@
     <script src="script.js"></script>
 
 </body>
-  </html>
+</html>
