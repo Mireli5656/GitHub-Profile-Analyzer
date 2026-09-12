@@ -24,7 +24,7 @@ A simple and fast web tool for analyzing GitHub profiles.
 - JavaScript
 - GitHub REST API
 
-## 📂 Project Structure
+ 📂 Project Structure
 
 ```text
 GitHub-Profile-Analyzer/
