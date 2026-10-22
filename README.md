@@ -24,14 +24,6 @@ A simple and fast web tool for analyzing GitHub profiles.
 - JavaScript
 - GitHub REST API
 
-## 📂 Project Structure
-
-GitHub-Profile-Analyzer/
-├── index.html
-├── style.css
-├── script.js
-└── README.md
-
 ## 📖 How to Use
 
 1. Enter a GitHub username.
