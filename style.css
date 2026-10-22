@@ -1,192 +1,391 @@
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-body {
+:root {
     font-family: Arial, sans-serif;
-    background: #f6f8fa;
     color: #24292f;
+    background: #f6f8fa;
+}
+
+body {
     min-height: 100vh;
+    line-height: 1.5;
 }
 
 header {
     text-align: center;
-    padding: 60px 20px 35px;
+    padding: 48px 18px 32px;
 }
 
 header h1 {
-    font-size: 36px;
-    margin-bottom: 10px;
+    font-size: clamp(26px, 5vw, 36px);
+    margin-bottom: 8px;
 }
 
-header p {
+header p, .muted {
     color: #57606a;
-    font-size: 17px;
+    font-size: 14px;
 }
 
 main {
-    width: 90%;
-    max-width: 900px;
+    width: 92%;
+    max-width: 950px;
     margin: auto;
 }
 
-.search-box {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 30px;
+input, select, button {
+    font: inherit;
 }
 
-.search-box input {
-    flex: 1;
-    padding: 14px 16px;
+input, select {
+    min-width: 0;
+    padding: 12px 14px;
     border: 1px solid #d0d7de;
     border-radius: 8px;
-    font-size: 16px;
-    outline: none;
+    background: #fff;
+    color: #24292f;
 }
 
-.search-box input:focus {
-    border-color: #0969da;
+input:focus, select:focus {
+    outline: 2px solid #0969da;
+    outline-offset: 1px;
 }
 
-.search-box button {
-    padding: 14px 24px;
-    border: none;
+button {
+    padding: 12px 18px;
+    border: 0;
     border-radius: 8px;
     background: #24292f;
     color: white;
-    font-size: 16px;
     cursor: pointer;
+    font-weight: 600;
 }
 
-.search-box button:hover {
-    opacity: 0.85;
+button:hover {
+    background: #3b424a;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.search-box, .compare-search {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.search-box input, .compare-search input {
+    flex: 1;
+}
+
+.message {
+    margin: 14px 0;
+    text-align: center;
+    color: #57606a;
+}
+
+.error {
+    color: #cf222e;
 }
 
 #profile {
-    background: white;
-    padding: 30px;
-    border: 1px solid #d0d7de;
-    border-radius: 12px;
+    margin-top: 22px;
 }
 
 .profile-header {
     display: flex;
     align-items: center;
     gap: 20px;
-    margin-bottom: 30px;
+    padding: 24px;
+    background: white;
+    border: 1px solid #d0d7de;
+    border-radius: 12px;
 }
 
-.profile-header img {
+.profile-header img, .compare-avatar {
     width: 100px;
     height: 100px;
     border-radius: 50%;
+    object-fit: cover;
 }
 
-.profile-header h2 {
-    margin-bottom: 5px;
+.profile-info {
+    min-width: 0;
 }
 
-.profile-header p {
+.profile-info h2 {
+    overflow-wrap: anywhere;
+}
+
+.profile-info p {
+    margin-top: 4px;
     color: #57606a;
-    margin-bottom: 5px;
-}
-
-.stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
-    margin-bottom: 30px;
-}
-
-.stats div {
-    padding: 20px;
-    text-align: center;
-    background: #f6f8fa;
-    border-radius: 8px;
-}
-
-.stats strong {
-    display: block;
-    font-size: 24px;
-    margin-bottom: 6px;
-}
-
-.stats span {
-    color: #57606a;
-    font-size: 14px;
-}
-
-.languages,
-.repositories {
-    margin-top: 25px;
-}
-
-.languages h3,
-.repositories h3 {
-    margin-bottom: 15px;
-}
-
-#languageList,
-#repoList {
-    display: grid;
-    gap: 10px;
-}
-
-.repo-card {
-    padding: 15px;
-    border: 1px solid #d0d7de;
-    border-radius: 8px;
-}
-
-.repo-card h4 {
-    margin-bottom: 6px;
-}
-
-.repo-card p {
-    color: #57606a;
-    font-size: 14px;
+    overflow-wrap: anywhere;
 }
 
 #githubLink {
     display: inline-block;
-    margin-top: 25px;
-    padding: 12px 18px;
-    background: #24292f;
-    color: white;
+    margin-top: 10px;
+    color: #0969da;
     text-decoration: none;
-    border-radius: 8px;
+    font-weight: 600;
 }
 
-#error {
+#githubLink:hover, .repo-name:hover {
+    text-decoration: underline;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.stat-card {
+    padding: 20px 10px;
     text-align: center;
-    color: #cf222e;
-    margin-top: 20px;
+    background: white;
+    border: 1px solid #d0d7de;
+    border-radius: 10px;
+}
+
+.stat-card strong {
+    display: block;
+    font-size: 24px;
+}
+
+.stat-card span {
+    color: #57606a;
+    font-size: 13px;
+}
+
+.panel {
+    margin: 18px 0;
+    padding: 22px;
+    background: white;
+    border: 1px solid #d0d7de;
+    border-radius: 12px;
+}
+
+.panel h2, .panel h3 {
+    margin-bottom: 12px;
+}
+
+.language-chart {
+    display: flex;
+    height: 12px;
+    gap: 3px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #eaeef2;
+    margin: 18px 0;
+}
+
+.language-segment {
+    height: 100%;
+    min-width: 2px;
+}
+
+.language-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.language-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid #eaeef2;
+    font-size: 14px;
+}
+
+.language-item span:last-child {
+    color: #57606a;
+    white-space: nowrap;
+}
+
+.filter-input {
+    width: 100%;
+    margin: 8px 0 12px;
+}
+
+.sort-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.sort-row label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.repo-list, .activity-list {
+    display: grid;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.repo-card {
+    padding: 16px;
+    border: 1px solid #d0d7de;
+    border-radius: 9px;
+}
+
+.repo-name {
+    color: #0969da;
+    font-size: 17px;
+    font-weight: 700;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.repo-description {
+    color: #57606a;
+    font-size: 14px;
+    margin: 7px 0 12px;
+    overflow-wrap: anywhere;
+}
+
+.repo-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    color: #57606a;
+    font-size: 13px;
+}
+
+.repo-details {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #eaeef2;
+    color: #57606a;
+    font-size: 13px;
+}
+
+.activity-item {
+    padding: 12px;
+    background: #f6f8fa;
+    border-radius: 8px;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.activity-item a {
+    color: #0969da;
+    text-decoration: none;
+}
+
+.compare-panel {
+    margin-top: 30px;
+}
+
+.compare-profiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 18px 0;
+}
+
+.compare-user {
+    padding: 16px;
+    border: 1px solid #d0d7de;
+    border-radius: 10px;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.compare-avatar {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 8px;
+}
+
+.compare-user a {
+    color: #0969da;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.compare-table th, .compare-table td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #d0d7de;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.compare-table th:first-child {
+    text-align: left;
+}
+
+.winner {
+    color: #1a7f37;
+    font-weight: 700;
 }
 
 footer {
+    padding: 35px 16px;
     text-align: center;
-    padding: 40px 20px;
     color: #57606a;
+    font-size: 13px;
+}
+
+[hidden] {
+    display: none !important;
 }
 
 @media (max-width: 600px) {
-    header h1 {
-        font-size: 28px;
+    header {
+        padding-top: 35px;
     }
 
-    .search-box {
+    .search-box, .compare-search {
         flex-direction: column;
-    }
-
-    .stats {
-        grid-template-columns: repeat(2, 1fr);
     }
 
     .profile-header {
         flex-direction: column;
         text-align: center;
     }
-  }
+
+    .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .panel {
+        padding: 16px;
+    }
+
+    .language-list {
+        grid-template-columns: 1fr;
+    }
+
+    .compare-profiles {
+        grid-template-columns: 1fr;
+    }
+
+    .sort-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .sort-row select {
+        width: 100%;
+    }
+}
