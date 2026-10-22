@@ -1,4 +1,3 @@
-
 const $ = id => document.getElementById(id);
 
 const usernameInput = $("username");
@@ -9,6 +8,23 @@ const status = $("status");
 
 let currentRepositories = [];
 
+const LANGUAGE_REPO_LIMIT = 15;
+const COMMIT_REPO_LIMIT = 8;
+const MAX_COMMITS = 10;
+
+const LANGUAGE_COLORS = [
+    "#0969da",
+    "#8250df",
+    "#1a7f37",
+    "#bf8700",
+    "#cf222e",
+    "#218bff",
+    "#bc4c00",
+    "#6e7781",
+    "#0f766e",
+    "#db2777"
+];
+
 const numberFormat = value =>
     Number(value || 0).toLocaleString();
 
@@ -18,21 +34,37 @@ function showMessage(element, message) {
 }
 
 function validateUsername(username) {
-    return /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/.test(username);
+    return /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/
+        .test(username);
 }
 
 async function api(path) {
-    const response = await fetch(`https://api.github.com${path}`, {
-        headers: { Accept: "application/vnd.github+json" }
-    });
+    const response = await fetch(
+        `https://api.github.com${path}`,
+        {
+            headers: {
+                Accept: "application/vnd.github+json"
+            }
+        }
+    );
 
     if (response.status === 404) {
         throw new Error("GitHub user or resource not found.");
     }
 
     if (response.status === 403) {
+        const remaining = response.headers.get(
+            "X-RateLimit-Remaining"
+        );
+
+        if (remaining === "0") {
+            throw new Error(
+                "GitHub API rate limit reached. Please try again later."
+            );
+        }
+
         throw new Error(
-            "GitHub API rate limit reached. Please wait and try again."
+            "GitHub API denied the request. Please try again later."
         );
     }
 
@@ -43,10 +75,57 @@ async function api(path) {
     return response.json();
 }
 
-$("searchBtn").addEventListener("click", analyzeProfile);
+async function mapWithConcurrency(items, limit, task) {
+    const results = new Array(items.length);
+    let nextIndex = 0;
+
+    async function worker() {
+        while (true) {
+            const index = nextIndex++;
+
+            if (index >= items.length) {
+                return;
+            }
+
+            try {
+                results[index] = await task(items[index]);
+            } catch {
+                results[index] = null;
+            }
+        }
+    }
+
+    const workers = Math.min(limit, items.length);
+
+    await Promise.all(
+        Array.from({ length: workers }, () => worker())
+    );
+
+    return results;
+}
+
+function formatBytes(bytes) {
+    if (bytes < 1024) {
+        return `${numberFormat(bytes)} B`;
+    }
+
+    if (bytes < 1024 * 1024) {
+        return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+
+    if (bytes < 1024 * 1024 * 1024) {
+        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    }
+
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+searchBtn.addEventListener("click", analyzeProfile);
 
 usernameInput.addEventListener("keydown", event => {
-    if (event.key === "Enter") analyzeProfile();
+    if (event.key === "Enter") {
+        analyzeProfile();
+    }
 });
 
 async function analyzeProfile() {
@@ -60,28 +139,52 @@ async function analyzeProfile() {
 
     showMessage(error, "");
     showMessage(status, "Loading profile and repositories...");
+
     profile.hidden = true;
     searchBtn.disabled = true;
     searchBtn.textContent = "Analyzing...";
 
+    $("languageChart").replaceChildren();
+    $("languageList").replaceChildren();
+    $("commitList").replaceChildren();
+
     try {
-        const user = await api(`/users/${encodeURIComponent(username)}`);
-        const repositories = await api(
-            `/users/${encodeURIComponent(username)}/repos?per_page=100&sort=updated`
-        );
+        const encodedUsername = encodeURIComponent(username);
+
+        const [user, repositories] = await Promise.all([
+            api(`/users/${encodedUsername}`),
+
+            api(
+                `/users/${encodedUsername}/repos?per_page=100&sort=updated&type=owner`
+            )
+        ]);
 
         currentRepositories = repositories;
 
         displayProfile(user);
         displayRepositories();
-        displayLanguages(repositories);
-        await displayActivity(username);
 
         profile.hidden = false;
+
+        showMessage(
+            status,
+            "Loading language byte statistics and latest commits..."
+        );
+
+        await Promise.all([
+            displayLanguages(user.login, repositories),
+            displayLatestCommits(user.login, repositories)
+        ]);
+
         showMessage(status, "");
     } catch (err) {
-        showMessage(error, err.message || "Something went wrong.");
+        showMessage(
+            error,
+            err.message || "Something went wrong."
+        );
+
         showMessage(status, "");
+        profile.hidden = true;
     } finally {
         searchBtn.disabled = false;
         searchBtn.textContent = "Analyze";
@@ -91,9 +194,13 @@ async function analyzeProfile() {
 function displayProfile(user) {
     $("avatar").src = user.avatar_url;
     $("avatar").alt = `${user.login} avatar`;
+
     $("name").textContent = user.name || user.login;
     $("login").textContent = `@${user.login}`;
-    $("bio").textContent = user.bio || "No bio available.";
+
+    $("bio").textContent =
+        user.bio || "No bio available.";
+
     $("location").textContent = user.location
         ? `📍 ${user.location}`
         : "";
@@ -103,7 +210,8 @@ function displayProfile(user) {
     $("following").textContent = numberFormat(user.following);
 
     const totalStars = currentRepositories.reduce(
-        (sum, repo) => sum + repo.stargazers_count, 0
+        (sum, repo) => sum + repo.stargazers_count,
+        0
     );
 
     $("stars").textContent = numberFormat(totalStars);
@@ -111,39 +219,38 @@ function displayProfile(user) {
 }
 
 function displayRepositories() {
-    const query = $("repoSearch").value.trim().toLowerCase();
     const sortBy = $("repoSort").value;
     const list = $("repoList");
 
-    const filtered = currentRepositories.filter(repo =>
-        repo.name.toLowerCase().includes(query) ||
-        (repo.description || "").toLowerCase().includes(query)
-    );
+    const sorted = [...currentRepositories];
 
-    filtered.sort((a, b) => {
+    sorted.sort((a, b) => {
         if (sortBy === "stars") {
             return b.stargazers_count - a.stargazers_count;
         }
+
         if (sortBy === "forks") {
             return b.forks_count - a.forks_count;
         }
+
         if (sortBy === "updated") {
             return new Date(b.updated_at) - new Date(a.updated_at);
         }
+
         return a.name.localeCompare(b.name);
     });
 
     $("repoCount").textContent =
-        `${filtered.length} repositories shown (of ${currentRepositories.length} loaded)`;
+        `${sorted.length} repositories loaded`;
 
     list.replaceChildren();
 
-    if (!filtered.length) {
-        list.textContent = "No matching repositories found.";
+    if (sorted.length === 0) {
+        list.textContent = "No public repositories found.";
         return;
     }
 
-    filtered.forEach(repo => {
+    sorted.forEach(repo => {
         const card = document.createElement("article");
         card.className = "repo-card";
 
@@ -163,10 +270,10 @@ function displayRepositories() {
         meta.className = "repo-meta";
 
         [
-            `⭐ ${numberFormat(repo.stargazers_count)}`,
-            `🍴 ${numberFormat(repo.forks_count)}`,
+            `⭐ ${numberFormat(repo.stargazers_count)} stars`,
+            `🍴 ${numberFormat(repo.forks_count)} forks`,
             `● ${repo.language || "No language"}`,
-            repo.private ? "Private" : "Public"
+            repo.fork ? "Fork" : "Original repository"
         ].forEach(text => {
             const item = document.createElement("span");
             item.textContent = text;
@@ -175,6 +282,7 @@ function displayRepositories() {
 
         const details = document.createElement("div");
         details.className = "repo-details";
+
         details.textContent =
             `Open issues: ${numberFormat(repo.open_issues_count)} · ` +
             `Created: ${new Date(repo.created_at).toLocaleDateString()} · ` +
@@ -185,222 +293,217 @@ function displayRepositories() {
     });
 }
 
-$("repoSearch").addEventListener("input", displayRepositories);
 $("repoSort").addEventListener("change", displayRepositories);
 
-function displayLanguages(repositories) {
-    const counts = {};
-
-    repositories.forEach(repo => {
-        if (repo.language) {
-            counts[repo.language] = (counts[repo.language] || 0) + 1;
-        }
-    });
-
-    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-    const total = entries.reduce((sum, entry) => sum + entry[1], 0);
-
+async function displayLanguages(username, repositories) {
     const chart = $("languageChart");
     const list = $("languageList");
+    const note = $("languageNote");
 
     chart.replaceChildren();
     list.replaceChildren();
 
-    if (!total) {
-        list.textContent = "No language data available.";
+    const selected = repositories.slice(0, LANGUAGE_REPO_LIMIT);
+
+    if (selected.length === 0) {
+        note.textContent = "No public repositories to analyze.";
         return;
     }
 
-    // Fixed palette keeps the chart readable and predictable.
-    const colors = [
-        "#0969da", "#8250df", "#1a7f37", "#bf8700",
-        "#cf222e", "#218bff", "#bc4c00", "#6e7781"
-    ];
+    note.textContent =
+        `Calculating code-byte percentages from up to ` +
+        `${selected.length} recently updated public repositories...`;
 
-    entries.forEach(([language, count], index) => {
-        const percent = count / total * 100;
+    const results = await mapWithConcurrency(
+        selected,
+        4,
+        async repo => {
+            const owner = repo.full_name.split("/")[0];
+
+            return await api(
+                `/repos/${encodeURIComponent(owner)}/` +
+                `${encodeURIComponent(repo.name)}/languages`
+            );
+        }
+    );
+
+    const totals = {};
+    let successfulRepos = 0;
+
+    results.forEach(languageData => {
+        if (!languageData) return;
+
+        successfulRepos++;
+
+        Object.entries(languageData).forEach(([language, bytes]) => {
+            totals[language] = (totals[language] || 0) + bytes;
+        });
+    });
+
+    const entries = Object.entries(totals)
+        .sort((a, b) => b[1] - a[1]);
+
+    const totalBytes = entries.reduce(
+        (sum, [, bytes]) => sum + bytes,
+        0
+    );
+
+    if (successfulRepos === 0 || totalBytes === 0) {
+        note.textContent =
+            "Language statistics are unavailable for these repositories. Try again later.";
+
+        return;
+    }
+
+    note.textContent =
+        `Based on code bytes from ${successfulRepos} public repositories. ` +
+        `Percentages show each language's share of the measured code.`;
+
+    entries.forEach(([language, bytes], index) => {
+        const percentage = bytes / totalBytes * 100;
+        const color =
+            LANGUAGE_COLORS[index % LANGUAGE_COLORS.length];
 
         const segment = document.createElement("div");
         segment.className = "language-segment";
-        segment.style.width = `${percent}%`;
-        segment.style.backgroundColor = colors[index % colors.length];
-        segment.title = `${language}: ${percent.toFixed(1)}%`;
+        segment.style.width = `${percentage}%`;
+        segment.style.backgroundColor = color;
+
+        segment.title =
+            `${language}: ${percentage.toFixed(2)}%`;
+
         chart.appendChild(segment);
 
         const item = document.createElement("div");
         item.className = "language-item";
 
+        const label = document.createElement("div");
+        label.className = "language-label";
+
+        const dot = document.createElement("span");
+        dot.className = "language-dot";
+        dot.style.backgroundColor = color;
+
         const name = document.createElement("span");
+        name.className = "language-name";
         name.textContent = language;
 
         const value = document.createElement("span");
-        value.textContent = `${percent.toFixed(1)}% · ${count} repos`;
+        value.className = "language-value";
+        value.textContent =
+            `${percentage.toFixed(2)}% · ${formatBytes(bytes)}`;
 
-        item.append(name, value);
+        label.append(dot, name);
+        item.append(label, value);
         list.appendChild(item);
     });
 }
 
-async function displayActivity(username) {
-    const list = $("activityList");
+async function displayLatestCommits(username, repositories) {
+    const list = $("commitList");
     list.replaceChildren();
 
-    try {
-        const events = await api(
-            `/users/${encodeURIComponent(username)}/events/public?per_page=10`
-        );
+    const selected = repositories.slice(0, COMMIT_REPO_LIMIT);
 
-        if (!events.length) {
-            list.textContent = "No recent public activity found.";
-            return;
-        }
+    if (selected.length === 0) {
+        list.textContent = "No repositories found.";
+        return;
+    }
 
-        events.forEach(event => {
-            const item = document.createElement("div");
-            item.className = "activity-item";
+    const results = await mapWithConcurrency(
+        selected,
+        4,
+        async repo => {
+            const owner = repo.full_name.split("/")[0];
 
-            const repoLink = document.createElement("a");
-            repoLink.href = `https://github.com/${event.repo.name}`;
-            repoLink.target = "_blank";
-            repoLink.rel = "noopener noreferrer";
-            repoLink.textContent = event.repo.name;
-
-            const type = event.type.replace("Event", "");
-            const date = new Date(event.created_at).toLocaleDateString();
-
-            item.append(
-                document.createTextNode(`${type} · `),
-                repoLink,
-                document.createTextNode(` · ${date}`)
+            const commits = await api(
+                `/repos/${encodeURIComponent(owner)}/` +
+                `${encodeURIComponent(repo.name)}/commits` +
+                `?author=${encodeURIComponent(username)}&per_page=3`
             );
 
-            list.appendChild(item);
+            return commits.map(commit => ({
+                ...commit,
+                repository: repo
+            }));
+        }
+    );
+
+    const commits = results
+        .filter(Boolean)
+        .flat()
+        .sort((a, b) => {
+            const dateA =
+                a.commit.author?.date ||
+                a.commit.committer?.date ||
+                "";
+
+            const dateB =
+                b.commit.author?.date ||
+                b.commit.committer?.date ||
+                "";
+
+            return new Date(dateB) - new Date(dateA);
         });
-    } catch {
-        list.textContent = "Could not load recent public activity.";
+
+    const uniqueCommits = [];
+    const seen = new Set();
+
+    for (const commit of commits) {
+        if (seen.has(commit.sha)) continue;
+
+        seen.add(commit.sha);
+        uniqueCommits.push(commit);
+
+        if (uniqueCommits.length >= MAX_COMMITS) break;
     }
-}
 
-$("compareBtn").addEventListener("click", compareProfiles);
+    if (uniqueCommits.length === 0) {
+        list.textContent =
+            "No recent commits by this user were found in the checked repositories.";
 
-async function compareProfiles() {
-    const first = $("compareUser1").value.trim();
-    const second = $("compareUser2").value.trim();
-
-    showMessage($("compareError"), "");
-    $("compareResult").hidden = true;
-
-    if (!validateUsername(first) || !validateUsername(second)) {
-        showMessage(
-            $("compareError"),
-            "Enter two valid GitHub usernames."
-        );
         return;
     }
 
-    if (first.toLowerCase() === second.toLowerCase()) {
-        showMessage(
-            $("compareError"),
-            "Enter two different GitHub usernames."
-        );
-        return;
-    }
+    uniqueCommits.forEach(commit => {
+        const card = document.createElement("article");
+        card.className = "commit-card";
 
-    const button = $("compareBtn");
-    button.disabled = true;
-    button.textContent = "Comparing...";
+        const message = document.createElement("a");
+        message.className = "commit-message";
+        message.href = commit.html_url;
+        message.target = "_blank";
+        message.rel = "noopener noreferrer";
 
-    try {
-        const [userA, userB, reposA, reposB] = await Promise.all([
-            api(`/users/${encodeURIComponent(first)}`),
-            api(`/users/${encodeURIComponent(second)}`),
-            api(`/users/${encodeURIComponent(first)}/repos?per_page=100`),
-            api(`/users/${encodeURIComponent(second)}/repos?per_page=100`)
-        ]);
+        const firstLine =
+            commit.commit.message.split("\n")[0].trim();
 
-        const starsA = reposA.reduce(
-            (sum, repo) => sum + repo.stargazers_count, 0
-        );
-        const starsB = reposB.reduce(
-            (sum, repo) => sum + repo.stargazers_count, 0
-        );
+        message.textContent =
+            firstLine || "Commit without a message";
 
-        $("compareProfiles").replaceChildren(
-            createCompareCard(userA),
-            createCompareCard(userB)
-        );
+        const meta = document.createElement("div");
+        meta.className = "commit-meta";
 
-        const rows = [
-            ["Public repositories", userA.public_repos, userB.public_repos],
-            ["Followers", userA.followers, userB.followers],
-            ["Following", userA.following, userB.following],
-            ["Stars (loaded repos)", starsA, starsB]
-        ];
+        const repoLink = document.createElement("a");
+        repoLink.href = commit.repository.html_url;
+        repoLink.target = "_blank";
+        repoLink.rel = "noopener noreferrer";
+        repoLink.textContent = commit.repository.name;
 
-        const table = document.createElement("table");
-        table.className = "compare-table";
+        const rawDate =
+            commit.commit.author?.date ||
+            commit.commit.committer?.date;
 
-        const head = document.createElement("tr");
-        ["Statistic", userA.login, userB.login].forEach(text => {
-            const th = document.createElement("th");
-            th.textContent = text;
-            head.appendChild(th);
-        });
+        const date = document.createElement("span");
+        date.textContent = rawDate
+            ? new Date(rawDate).toLocaleString()
+            : "Date unavailable";
 
-        const thead = document.createElement("thead");
-        thead.appendChild(head);
-        table.appendChild(thead);
+        const sha = document.createElement("span");
+        sha.textContent = commit.sha.slice(0, 7);
 
-        const tbody = document.createElement("tbody");
-
-        rows.forEach(([label, valueA, valueB]) => {
-            const row = document.createElement("tr");
-            const labelCell = document.createElement("th");
-            labelCell.textContent = label;
-            row.appendChild(labelCell);
-
-            [valueA, valueB].forEach((value, index) => {
-                const cell = document.createElement("td");
-                cell.textContent = numberFormat(value);
-
-                const other = index === 0 ? valueB : valueA;
-                if (value > other) cell.className = "winner";
-
-                row.appendChild(cell);
-            });
-
-            tbody.appendChild(row);
-        });
-
-        table.appendChild(tbody);
-        $("compareStats").replaceChildren(table);
-        $("compareResult").hidden = false;
-    } catch (err) {
-        showMessage($("compareError"), err.message);
-    } finally {
-        button.disabled = false;
-        button.textContent = "Compare";
-    }
-}
-
-function createCompareCard(user) {
-    const card = document.createElement("div");
-    card.className = "compare-user";
-
-    const avatar = document.createElement("img");
-    avatar.className = "compare-avatar";
-    avatar.src = user.avatar_url;
-    avatar.alt = `${user.login} avatar`;
-
-    const name = document.createElement("p");
-    name.textContent = user.name || user.login;
-
-    const link = document.createElement("a");
-    link.href = user.html_url;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.textContent = `@${user.login}`;
-
-    card.append(avatar, name, link);
-    return card;
-}
+        meta.append(repoLink, date, sha);
+        card.append(message, meta);
+        list.appendChild(card);
+    });
+            }
