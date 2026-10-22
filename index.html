@@ -1,25 +1,28 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#f6f8fa">
-    <meta name="description" content="Analyze GitHub profiles, repositories, stars, programming languages and public activity.">
+    <meta name="description" content="Analyze GitHub profiles, code language usage, repositories and recent commits.">
     <title>GitHub Profile Analyzer</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
         <h1>GitHub Profile Analyzer</h1>
-        <p>Explore GitHub profiles, repositories and developer activity.</p>
+        <p>Explore GitHub profiles, code statistics and recent commits.</p>
     </header>
 
     <main>
         <section class="search-box">
-            <input id="username" type="text"
+            <input
+                id="username"
+                type="text"
                 placeholder="Enter GitHub username"
-                autocomplete="off" maxlength="39">
+                autocomplete="off"
+                maxlength="39"
+            >
             <button id="searchBtn">Analyze</button>
         </section>
 
@@ -29,13 +32,21 @@
         <section id="profile" hidden>
             <div class="profile-header">
                 <img id="avatar" src="" alt="GitHub avatar">
+
                 <div class="profile-info">
                     <h2 id="name"></h2>
                     <p id="login"></p>
                     <p id="bio"></p>
                     <p id="location"></p>
-                    <a id="githubLink" href="#" target="_blank"
-                        rel="noopener noreferrer">View GitHub Profile ↗</a>
+
+                    <a
+                        id="githubLink"
+                        href="#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        View GitHub Profile ↗
+                    </a>
                 </div>
             </div>
 
@@ -44,33 +55,45 @@
                     <strong id="repos">0</strong>
                     <span>Repositories</span>
                 </div>
+
                 <div class="stat-card">
                     <strong id="followers">0</strong>
                     <span>Followers</span>
                 </div>
+
                 <div class="stat-card">
                     <strong id="following">0</strong>
                     <span>Following</span>
                 </div>
+
                 <div class="stat-card">
                     <strong id="stars">0</strong>
-                    <span>Total Stars</span>
+                    <span>Stars (loaded repos)</span>
                 </div>
             </div>
 
             <section class="panel">
-                <h3>Programming Languages</h3>
-                <div id="languageChart" class="language-chart"
-                    aria-label="Programming language distribution"></div>
+                <h3>Programming Language Usage</h3>
+
+                <p id="languageNote" class="muted">
+                    Calculating language usage...
+                </p>
+
+                <div
+                    id="languageChart"
+                    class="language-chart"
+                    aria-label="Programming language usage chart"
+                ></div>
+
                 <div id="languageList" class="language-list"></div>
             </section>
 
             <section class="panel">
                 <h3>Repositories</h3>
-                <input id="repoSearch" class="filter-input"
-                    type="search" placeholder="Search repositories...">
+
                 <div class="sort-row">
                     <label for="repoSort">Sort by:</label>
+
                     <select id="repoSort">
                         <option value="stars">Most stars</option>
                         <option value="forks">Most forks</option>
@@ -78,32 +101,21 @@
                         <option value="name">Name (A–Z)</option>
                     </select>
                 </div>
+
                 <p id="repoCount" class="muted"></p>
+
                 <div id="repoList" class="repo-list"></div>
             </section>
 
             <section class="panel">
-                <h3>Recent Public Activity</h3>
-                <p class="muted">Recent events available through the GitHub API.</p>
-                <div id="activityList" class="activity-list"></div>
-            </section>
-        </section>
+                <h3>Latest Commits</h3>
 
-        <section class="panel compare-panel">
-            <h2>Compare GitHub Profiles</h2>
-            <p class="muted">Compare public statistics for two users.</p>
-            <div class="compare-search">
-                <input id="compareUser1" type="text"
-                    placeholder="First username" maxlength="39">
-                <input id="compareUser2" type="text"
-                    placeholder="Second username" maxlength="39">
-                <button id="compareBtn">Compare</button>
-            </div>
-            <p id="compareError" class="message error" hidden></p>
-            <div id="compareResult" hidden>
-                <div id="compareProfiles" class="compare-profiles"></div>
-                <div id="compareStats"></div>
-            </div>
+                <p class="muted">
+                    Recent commits authored by this user in public repositories.
+                </p>
+
+                <div id="commitList" class="commit-list"></div>
+            </section>
         </section>
     </main>
 
