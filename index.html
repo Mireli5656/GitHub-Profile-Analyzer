@@ -4,53 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#f6f8fa">
-    <meta name="description" content="Analyze GitHub profiles, code language usage, repositories and recent commits.">
+    <meta
+        name="description"
+        content="Analyze GitHub profiles, programming language usage, repositories and recent commits."
+    >
+
     <title>GitHub Profile Analyzer</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <header>
+    <header class="site-header">
         <h1>GitHub Profile Analyzer</h1>
         <p>Explore GitHub profiles, code statistics and recent commits.</p>
     </header>
 
     <main>
+        <!-- Profile Search -->
         <section class="search-box">
             <input
                 id="username"
                 type="text"
                 placeholder="Enter GitHub username"
+                aria-label="GitHub username"
                 autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
                 maxlength="39"
             >
-            <button id="searchBtn">Analyze</button>
+
+            <button id="searchBtn" type="button">
+                Analyze
+            </button>
         </section>
 
-        <p id="error" class="message error" hidden></p>
-        <p id="status" class="message" hidden></p>
+        <!-- Error and Status Messages -->
+        <p
+            id="error"
+            class="message error"
+            role="alert"
+            hidden
+        ></p>
 
+        <p
+            id="status"
+            class="message"
+            role="status"
+            aria-live="polite"
+            hidden
+        ></p>
+
+        <!-- Profile Results -->
         <section id="profile" hidden>
-            <div class="profile-header">
-                <img id="avatar" src="" alt="GitHub avatar">
 
-                <div class="profile-info">
-                    <h2 id="name"></h2>
-                    <p id="login"></p>
-                    <p id="bio"></p>
-                    <p id="location"></p>
-
-                    <a
-                        id="githubLink"
-                        href="#"
-                        target="_blank"
-                        rel="noopener noreferrer"
+            <!-- Profile Information -->
+            <section class="profile-card">
+                <div class="profile-header">
+                    <img
+                        id="avatar"
+                        src=""
+                        alt="GitHub avatar"
+                        width="120"
+                        height="120"
                     >
-                        View GitHub Profile ↗
-                    </a>
-                </div>
-            </div>
 
-            <div class="stats">
+                    <div class="profile-info">
+                        <h2 id="name"></h2>
+                        <p id="login"></p>
+                        <p id="bio"></p>
+                        <p id="location"></p>
+
+                        <a
+                            id="githubLink"
+                            href="#"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            View GitHub Profile ↗
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profile Statistics -->
+            <section class="stats">
                 <div class="stat-card">
                     <strong id="repos">0</strong>
                     <span>Repositories</span>
@@ -70,9 +108,10 @@
                     <strong id="stars">0</strong>
                     <span>Stars (loaded repos)</span>
                 </div>
-            </div>
+            </section>
 
-            <section class="panel">
+            <!-- Programming Language Statistics -->
+            <section class="panel" id="languages">
                 <h3>Programming Language Usage</h3>
 
                 <p id="languageNote" class="muted">
@@ -82,19 +121,24 @@
                 <div
                     id="languageChart"
                     class="language-chart"
+                    role="img"
                     aria-label="Programming language usage chart"
                 ></div>
 
-                <div id="languageList" class="language-list"></div>
+                <div
+                    id="languageList"
+                    class="language-list"
+                ></div>
             </section>
 
-            <section class="panel">
+            <!-- Repository List -->
+            <section class="panel" id="repositories">
                 <h3>Repositories</h3>
 
                 <div class="sort-row">
                     <label for="repoSort">Sort by:</label>
 
-                    <select id="repoSort">
+                    <select id="repoSort" name="repoSort">
                         <option value="stars">Most stars</option>
                         <option value="forks">Most forks</option>
                         <option value="updated">Recently updated</option>
@@ -104,18 +148,26 @@
 
                 <p id="repoCount" class="muted"></p>
 
-                <div id="repoList" class="repo-list"></div>
+                <div
+                    id="repoList"
+                    class="repo-list"
+                ></div>
             </section>
 
-            <section class="panel">
+            <!-- Latest Commits -->
+            <section class="panel" id="latest-commits">
                 <h3>Latest Commits</h3>
 
                 <p class="muted">
                     Recent commits authored by this user in public repositories.
                 </p>
 
-                <div id="commitList" class="commit-list"></div>
+                <div
+                    id="commitList"
+                    class="commit-list"
+                ></div>
             </section>
+
         </section>
     </main>
 
@@ -125,4 +177,4 @@
 
     <script src="script.js"></script>
 </body>
-</html>
+                </html>
