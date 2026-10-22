@@ -1,4 +1,3 @@
-
 * {
     margin: 0;
     padding: 0;
@@ -26,7 +25,8 @@ header h1 {
     margin-bottom: 8px;
 }
 
-header p, .muted {
+header p,
+.muted {
     color: #57606a;
     font-size: 14px;
 }
@@ -37,32 +37,36 @@ main {
     margin: auto;
 }
 
-input, select, button {
+input,
+select,
+button {
     font: inherit;
 }
 
-input, select {
+input,
+select {
     min-width: 0;
     padding: 12px 14px;
     border: 1px solid #d0d7de;
     border-radius: 8px;
-    background: #fff;
+    background: white;
     color: #24292f;
 }
 
-input:focus, select:focus {
+input:focus,
+select:focus {
     outline: 2px solid #0969da;
     outline-offset: 1px;
 }
 
 button {
     padding: 12px 18px;
-    border: 0;
+    border: none;
     border-radius: 8px;
     background: #24292f;
     color: white;
-    cursor: pointer;
     font-weight: 600;
+    cursor: pointer;
 }
 
 button:hover {
@@ -74,13 +78,13 @@ button:disabled {
     cursor: wait;
 }
 
-.search-box, .compare-search {
+.search-box {
     display: flex;
     gap: 10px;
     margin-bottom: 18px;
 }
 
-.search-box input, .compare-search input {
+.search-box input {
     flex: 1;
 }
 
@@ -108,7 +112,7 @@ button:disabled {
     border-radius: 12px;
 }
 
-.profile-header img, .compare-avatar {
+.profile-header img {
     width: 100px;
     height: 100px;
     border-radius: 50%;
@@ -133,11 +137,13 @@ button:disabled {
     display: inline-block;
     margin-top: 10px;
     color: #0969da;
-    text-decoration: none;
     font-weight: 600;
+    text-decoration: none;
 }
 
-#githubLink:hover, .repo-name:hover {
+#githubLink:hover,
+.repo-name:hover,
+.commit-message:hover {
     text-decoration: underline;
 }
 
@@ -159,11 +165,12 @@ button:disabled {
 .stat-card strong {
     display: block;
     font-size: 24px;
+    overflow-wrap: anywhere;
 }
 
 .stat-card span {
     color: #57606a;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .panel {
@@ -174,14 +181,14 @@ button:disabled {
     border-radius: 12px;
 }
 
-.panel h2, .panel h3 {
+.panel h3 {
     margin-bottom: 12px;
 }
 
 .language-chart {
     display: flex;
-    height: 12px;
-    gap: 3px;
+    height: 14px;
+    gap: 2px;
     overflow: hidden;
     border-radius: 8px;
     background: #eaeef2;
@@ -196,33 +203,49 @@ button:disabled {
 .language-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    gap: 8px 20px;
 }
 
 .language-item {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
-    padding: 9px 0;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
     border-bottom: 1px solid #eaeef2;
     font-size: 14px;
 }
 
-.language-item span:last-child {
-    color: #57606a;
-    white-space: nowrap;
+.language-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
 }
 
-.filter-input {
-    width: 100%;
-    margin: 8px 0 12px;
+.language-dot {
+    width: 10px;
+    height: 10px;
+    flex: 0 0 10px;
+    border-radius: 50%;
+}
+
+.language-name {
+    overflow-wrap: anywhere;
+}
+
+.language-value {
+    color: #57606a;
+    text-align: right;
+    font-size: 12px;
+    flex-shrink: 0;
 }
 
 .sort-row {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .sort-row label {
@@ -230,13 +253,15 @@ button:disabled {
     font-weight: 600;
 }
 
-.repo-list, .activity-list {
+.repo-list,
+.commit-list {
     display: grid;
     gap: 12px;
-    margin-top: 12px;
+    margin-top: 14px;
 }
 
-.repo-card {
+.repo-card,
+.commit-card {
     padding: 16px;
     border: 1px solid #d0d7de;
     border-radius: 9px;
@@ -251,9 +276,9 @@ button:disabled {
 }
 
 .repo-description {
+    margin: 7px 0 12px;
     color: #57606a;
     font-size: 14px;
-    margin: 7px 0 12px;
     overflow-wrap: anywhere;
 }
 
@@ -271,72 +296,32 @@ button:disabled {
     border-top: 1px solid #eaeef2;
     color: #57606a;
     font-size: 13px;
-}
-
-.activity-item {
-    padding: 12px;
-    background: #f6f8fa;
-    border-radius: 8px;
-    font-size: 14px;
     overflow-wrap: anywhere;
 }
 
-.activity-item a {
+.commit-message {
     color: #0969da;
+    font-weight: 600;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.commit-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin-top: 9px;
+    color: #57606a;
+    font-size: 13px;
+}
+
+.commit-meta a {
+    color: #57606a;
     text-decoration: none;
 }
 
-.compare-panel {
-    margin-top: 30px;
-}
-
-.compare-profiles {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-    margin: 18px 0;
-}
-
-.compare-user {
-    padding: 16px;
-    border: 1px solid #d0d7de;
-    border-radius: 10px;
-    text-align: center;
-    overflow-wrap: anywhere;
-}
-
-.compare-avatar {
-    width: 70px;
-    height: 70px;
-    margin-bottom: 8px;
-}
-
-.compare-user a {
+.commit-meta a:hover {
     color: #0969da;
-    font-weight: 700;
-    text-decoration: none;
-}
-
-.compare-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-}
-
-.compare-table th, .compare-table td {
-    padding: 12px 8px;
-    border-bottom: 1px solid #d0d7de;
-    text-align: center;
-    overflow-wrap: anywhere;
-}
-
-.compare-table th:first-child {
-    text-align: left;
-}
-
-.winner {
-    color: #1a7f37;
-    font-weight: 700;
 }
 
 footer {
@@ -355,7 +340,7 @@ footer {
         padding-top: 35px;
     }
 
-    .search-box, .compare-search {
+    .search-box {
         flex-direction: column;
     }
 
@@ -373,10 +358,6 @@ footer {
     }
 
     .language-list {
-        grid-template-columns: 1fr;
-    }
-
-    .compare-profiles {
         grid-template-columns: 1fr;
     }
 
